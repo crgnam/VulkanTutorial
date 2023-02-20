@@ -1,0 +1,11 @@
+{
+  "name": "vt",
+  "version-string": "",
+  "dependencies": [
+    "glfw3",
+    "glm",
+    "imgui",
+    "tinyobjloader"
+  ],
+  "builtin-baseline": "36fb23307e10cc6ffcec566c46c4bb3f567c82c6"
+}
