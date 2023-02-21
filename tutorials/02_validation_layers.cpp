@@ -6,6 +6,7 @@
 #include <cstdlib> // Provides EXIT_SUCCESS and EXIT_FAILURE macros
 #include <cstddef>
 #include <string>
+#include <vector>
 
 class HelloTriangleApplication {
 public:
@@ -13,6 +14,16 @@ public:
     const uint32_t width;
     const uint32_t height;
     const std::string name;
+
+    const std::vector<const char*> validationLayers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+    
+    #ifdef NDEBUG
+        const bool enableValidationLayers = false;
+    #else
+        const bool enableValidationLayers = true;
+    #endif
 
     HelloTriangleApplication() : name{ "Vulkan Tutorial" }, width{ 800 }, height{ 600 } {};
     HelloTriangleApplication(std::string name) : name{ name }, width{ 800 }, height{ 600 } {};
