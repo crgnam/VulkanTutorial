@@ -5,6 +5,8 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+option(BUILD_TUTORIALS "Build the explicit vulkan-tutorial projects" TRUE)
+
 # Uncomment these lines to compile for debugging:
 # set(CMAKE_BUILD_TYPE Debug)
 # set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -29,6 +31,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 include_directories(include)
 
 # Add project subdirectories:
-add_subdirectory(tutorials)
+if (BUILD_TUTORIALS)
+	add_subdirectory(tutorials)
+endif()
 add_subdirectory(lib)
 add_subdirectory(src)
