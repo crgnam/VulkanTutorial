@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-project(vulkan_tutorial LANGUAGES CXX VERSION 0.9)
+project(VulkanTutorial LANGUAGES CXX VERSION 0.9)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) 
 set(CMAKE_BUILD_TYPE Release)
