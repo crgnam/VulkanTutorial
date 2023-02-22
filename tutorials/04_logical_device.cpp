@@ -42,6 +42,8 @@ private:
     VkInstance instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device = VK_NULL_HANDLE;
+    VkQueue graphicsQueue = VK_NULL_HANDLE;
 
     void initWindow() {
         glfwInit(); // Initialize GLFW
@@ -49,7 +51,7 @@ private:
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // Make window sized fixed
 
         window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
-    }
+    };
 
     bool checkValidationLayerSupport() {
         // List all of the available layers:
@@ -76,7 +78,7 @@ private:
         }
 
         return true;
-    }
+    };
 
     void createInstance() {
         if (enableValidationLayers && !checkValidationLayerSupport()) {
@@ -130,7 +132,7 @@ private:
         //  - Pointer to custom allocator callbacks, always nullptr in this tutorial
         //  - Pointer to the variable that stores the handle to the new object
         VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-    }
+    };
 
     std::vector<const char*> getRequiredExtensions() {
         // Create and return the required list of extensions:
@@ -146,7 +148,7 @@ private:
         }
 
         return extensions;
-    }
+    };
 
     void setupDebugMessenger() {
         if (!enableValidationLayers) {
@@ -160,7 +162,7 @@ private:
         if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug messenger!");
         }
-    }
+    };
 
     VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -170,14 +172,14 @@ private:
         else {
             return VK_ERROR_EXTENSION_NOT_PRESENT;
         }
-    }
+    };
 
     void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
         if (func != nullptr) {
             func(instance, debugMessenger, pAllocator);
         }
-    }
+    };
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -191,7 +193,7 @@ private:
         }
 
         return VK_FALSE;
-    }
+    };
 
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
         createInfo = {};
@@ -199,7 +201,7 @@ private:
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
-    }
+    };
 
     void pickPhysicalDevice() {
         uint32_t deviceCount = 0;
@@ -235,7 +237,7 @@ private:
         vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
         std::cout << "\nUsing: " << deviceProperties.deviceName << std::endl;
-    }
+    };
 
     int rateDeviceSuitability(VkPhysicalDevice device) {
 
@@ -259,7 +261,7 @@ private:
         }
 
         return score;
-    }
+    };
 
     // Inner strct for Queue Family data:
     struct QueueFamilyIndices {
@@ -295,19 +297,60 @@ private:
         return indices;
     };
 
+    void createLogicalDevice() {
+        QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+
+        float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+
+        createInfo.pEnabledFeatures = &deviceFeatures;
+
+        // No longer required with new implementations of Vulkan, but included to be compatible with older implementations:
+        createInfo.enabledExtensionCount = 0;
+        if (enableValidationLayers) {
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            createInfo.ppEnabledLayerNames = validationLayers.data();
+        }
+        else {
+            createInfo.enabledLayerCount = 0;
+        }
+
+        // Create the Vulkan Device:
+        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create logical device!");
+        }
+
+        vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+    };
+
     void initVulkan() {
         createInstance();
         setupDebugMessenger();
         pickPhysicalDevice();
-    }
+        createLogicalDevice();
+    };
 
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
         }
-    }
+    };
 
     void cleanup() {
+        vkDestroyDevice(device, nullptr);
+
         if (enableValidationLayers) {
             DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
         }
@@ -317,7 +360,7 @@ private:
         glfwDestroyWindow(window);
 
         glfwTerminate();
-    }
+    };
 };
 
 int main() {
