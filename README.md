@@ -12,3 +12,6 @@ Working through the [Vulkan Tutorial](https://vulkan-tutorial.com/).
 - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
 - [vcpkg](https://vcpkg.io/en/index.html) (for managing dependencies)
 - [CMake](https://cmake.org/)
+
+### Devce Drivers:
+Make sure that your current GPU drivers support the Vulkan API.
